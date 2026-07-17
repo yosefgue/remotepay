@@ -1,0 +1,33 @@
+# --- Build Artifacts & Output ---
+**/target/
+**/*.jar
+**/*.war
+
+# --- Version Control ---
+.git
+.gitignore
+
+# --- IDE Settings & Local OS Crap ---
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.settings/
+.classpath
+.project
+.factorypath
+.DS_Store
+Thumbs.db
+
+# --- Secrets & Environment Configurations ---
+.env
+.env.local
+docker-compose*.yml
+docker-compose*.yaml
+Dockerfile
+
+# --- Documentation ---
+README.md
+HELP.md
+LICENSE
