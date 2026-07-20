@@ -16,15 +16,15 @@ services:
     container_name: postgres-dev
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DATABASE_NAME}
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -35,6 +35,8 @@ services:
       dockerfile: Dockerfile.dev
     container_name: backend-dev
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:
@@ -45,9 +47,9 @@ services:
       - ./backend/target/classes:/app/target/classes
       - maven_cache:/root/.m2
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DATABASE_NAME}
-      SPRING_DATASOURCE_USERNAME: ${DATABASE_USER}
-      SPRING_DATASOURCE_PASSWORD: ${DATABASE_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_DEVTOOLS_RESTART_ENABLED: "true"
 
 volumes:
