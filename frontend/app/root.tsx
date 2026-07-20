@@ -9,6 +9,7 @@ import {
 
 import type { Route } from "./+types/root"
 import "./app.css"
+import { Spinner } from "./components/ui/spinner"
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,6 +31,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return <Outlet />
+}
+
+export function HydrateFallback() {
+  return <Spinner />;
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
