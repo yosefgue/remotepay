@@ -1,11 +1,13 @@
 import { Button } from "~/components/ui/button"
 
-export default function Home() {
-  return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center">
-      <Button onClick={() => window.location.replace("http://localhost:8080/api/clover/connect")}>
-        Connect To Clover
-      </Button>
-    </div>
-  )
-}
+import { type RouteConfig, index, route, layout } from "@react-router/dev/routes";
+
+export default [
+  index("routes/connect.tsx"),
+  
+  layout("components/ProtectedRoute.tsx", [
+    route("dashboard", "routes/dashboard.tsx"),
+    route("orders", "routes/orders.tsx"),
+    route("settings", "routes/settings.tsx"),
+  ]),
+] satisfies RouteConfig;
