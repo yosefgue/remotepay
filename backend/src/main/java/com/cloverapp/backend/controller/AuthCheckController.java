@@ -28,11 +28,6 @@ public class AuthCheckController {
         this.tokenRepository = tokenRepository;
     }
 
-    /**
-     * 1. CREATE SESSION (Missing Route)
-     * Called by React's AuthSuccess.tsx after state verification.
-     * Sets the HttpOnly 'clover_session' cookie on localhost / production domain.
-     */
     @PostMapping("/session")
     public ResponseEntity<Map<String, Object>> createSession(@RequestBody Map<String, String> payload) {
         String merchantId = payload.get("merchantId");
@@ -60,10 +55,6 @@ public class AuthCheckController {
                 ));
     }
 
-    /**
-     * 2. CHECK CURRENT SESSION
-     * Called by React's ProtectedRoute or AuthContext on initial page load / refresh.
-     */
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> getCurrentSession(
             @CookieValue(name = "clover_session", required = false) String merchantId) {
@@ -79,10 +70,6 @@ public class AuthCheckController {
         ));
     }
 
-    /**
-     * 3. LOGOUT / DESTROY SESSION
-     * Clears the 'clover_session' cookie from the client browser.
-     */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
         ResponseCookie deleteCookie = ResponseCookie.from("clover_session", "")

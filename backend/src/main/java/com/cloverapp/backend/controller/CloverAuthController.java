@@ -18,18 +18,18 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequestMapping("/api/clover")
 public class CloverAuthController {
 
-    @Value("${clover.app-id}")
-    private String appId;
+    private final String appId;
 
-    @Value("${clover.redirect-uri}")
-    private String redirectUri;
+    private final String redirectUri;
 
-    @Value("${clover.base-authorize-url}")
-    private String authorizeHost;
+    private final String authorizeHost;
 
     private final RetrieveToken retrieveToken;
 
-    public CloverAuthController(RetrieveToken retrieveToken) {
+    public CloverAuthController(@Value("${clover.app-id}") String appId, @Value("${clover.redirect-uri}") String redirectUri, @Value("${clover.base-authorize-url}") String authorizeHost, RetrieveToken retrieveToken) {
+        this.appId = appId;
+        this.redirectUri = redirectUri;
+        this.authorizeHost = authorizeHost;
         this.retrieveToken = retrieveToken;
     }
 

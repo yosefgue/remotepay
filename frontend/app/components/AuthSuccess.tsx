@@ -23,7 +23,7 @@ export default function AuthSuccess() {
       sessionStorage.removeItem("clover_csrf_state");
     }
 
-    // 1. VERIFY STATE (CSRF Protection)
+    // VERIFY STATE (CSRF Protection)
     if (!savedState || savedState !== returnedState) {
       console.error("CSRF State mismatch!");
       setError("Security verification failed. Request may be forged.");
@@ -35,7 +35,7 @@ export default function AuthSuccess() {
       return;
     }
 
-    // 2. ESTABLISH SESSION COOKIE
+    // ESTABLISH SESSION COOKIE
     fetch("/api/auth/session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

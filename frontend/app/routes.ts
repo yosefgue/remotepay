@@ -4,6 +4,7 @@ export default [
   index("routes/Connect.tsx"),
   route("auth-success", "components/AuthSuccess.tsx"),
   layout("components/ProtectedRoute.tsx", [
+    route("sync", "routes/sync.tsx"),
     route("dashboard", "routes/dashboard/Dashboard.tsx", [
       index("routes/dashboard/Home.tsx"),
     ]),
