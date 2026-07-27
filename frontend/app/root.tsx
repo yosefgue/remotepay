@@ -10,8 +10,9 @@ import {
 import type { Route } from "./+types/root"
 import "./app.css"
 import { Spinner } from "./components/ui/spinner"
+import type { ReactNode } from "react"
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
