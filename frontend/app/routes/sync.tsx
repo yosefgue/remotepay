@@ -10,6 +10,17 @@ interface StepItemProps {
   stepStatus?: StepStatus;
 }
 
+async function handleSync() {
+  const response = await fetch(`/api/clover/sync/customer`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) throw new Error("Sync failed");
+  return response.json();
+}
+
 function SyncStepItem({ title, stepStatus = "pending" }: StepItemProps) {
   return (
     <div className="flex items-center gap-3 py-2">
@@ -61,7 +72,22 @@ export default function Sync() {
           />
         </CardContent>
         <CardFooter className="flex justify-center border-t">
-          <Button size="lg" >Sync Data</Button>
+          <Button 
+            size="lg" 
+            onClick={async () => {
+              setMerchantStatus("loading");
+              try {
+                await handleSync();
+                setMerchantStatus("completed");
+              } catch (error) {
+                setMerchantStatus("pending");
+                console.error("Sync error:", error);
+              }
+            }}
+            disabled={merchantStatus === "loading"}
+          >
+            Sync Data
+          </Button>
         </CardFooter>
       </Card>
     </div>
