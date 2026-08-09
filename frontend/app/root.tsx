@@ -11,6 +11,7 @@ import type { Route } from "./+types/root"
 import "./app.css"
 import { Spinner } from "./components/ui/spinner"
 import type { ReactNode } from "react"
+import { TooltipProvider } from "~/components/ui/tooltip"
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
@@ -22,7 +23,9 @@ export function Layout({ children }: { children: ReactNode }) {
         <Links />
       </head>
       <body>
-        {children}
+        <TooltipProvider>
+          {children}
+        </TooltipProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
