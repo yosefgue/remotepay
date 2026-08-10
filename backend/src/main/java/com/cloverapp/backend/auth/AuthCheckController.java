@@ -1,6 +1,5 @@
-package com.cloverapp.backend.controller;
+package com.cloverapp.backend.auth;
 
-import com.cloverapp.backend.repository.OAuthTokenRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

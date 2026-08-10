@@ -1,4 +1,4 @@
-package com.cloverapp.backend.dto;
+package com.cloverapp.backend.customer;
 
 import java.util.List;
 

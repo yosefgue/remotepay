@@ -60,7 +60,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               render={<a href="#" />}
               className=" flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground font-semibold shadow-sm"
             >
-              <CirclePlus className="size-4" />
+              <CirclePlus className="size-4 stroke-3" />
               <span>New Invoice</span>
             </SidebarMenuButton>
           </SidebarMenuItem>

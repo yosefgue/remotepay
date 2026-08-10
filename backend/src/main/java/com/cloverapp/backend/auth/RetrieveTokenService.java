@@ -1,7 +1,5 @@
-package com.cloverapp.backend.service;
+package com.cloverapp.backend.auth;
 
-import com.cloverapp.backend.entity.OAuthToken;
-import com.cloverapp.backend.repository.OAuthTokenRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -11,7 +9,7 @@ import java.time.Instant;
 import java.util.Map;
 
 @Service
-public class RetrieveToken {
+public class RetrieveTokenService {
     @Value("${clover.app-id}")
     private String appId;
     @Value("${clover.app-secret}")
@@ -22,7 +20,7 @@ public class RetrieveToken {
     private final OAuthTokenRepository tokenRepository;
     private final RestClient restClient;
 
-    public RetrieveToken(OAuthTokenRepository tokenRepository) {
+    public RetrieveTokenService(OAuthTokenRepository tokenRepository) {
         this.tokenRepository = tokenRepository;
         this.restClient = RestClient.create();
     }
@@ -49,8 +47,8 @@ public class RetrieveToken {
             throw new RuntimeException("Failed to exchange auth code for tokens with Clover");
         }
         // new token entity, also checks if merchant is new or already exists
-        OAuthToken tokenEntity = tokenRepository.findByMerchantId(merchantId)
-                .orElseGet(OAuthToken::new);
+        OAuthTokenEntity tokenEntity = tokenRepository.findByMerchantId(merchantId)
+                .orElseGet(OAuthTokenEntity::new);
 
         Instant now = Instant.now();
 
@@ -62,12 +60,4 @@ public class RetrieveToken {
         // save tokens in db
         tokenRepository.save(tokenEntity);
     }
-
-    // dto record that holds tokens
-    private record CloverTokenResponse(
-            String access_token,
-            long access_token_expiration,
-            String refresh_token,
-            long refresh_token_expiration
-    ) {}
 }

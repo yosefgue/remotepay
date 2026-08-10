@@ -1,4 +1,4 @@
-package com.cloverapp.backend.entity;
+package com.cloverapp.backend.auth;
 
 import java.time.Instant;
 import jakarta.persistence.*;
@@ -10,7 +10,7 @@ import jakarta.persistence.*;
                 @Index(name = "idx_merchant_id", columnList = "merchant_id", unique = true)
         }
 )
-public class OAuthToken {
+public class OAuthTokenEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,10 +31,10 @@ public class OAuthToken {
     @Column(name = "refresh_token_expires_at", nullable = false)
     private Instant refreshTokenExpiresAt;
 
-    public OAuthToken() {}
+    public OAuthTokenEntity() {}
 
-    public OAuthToken(String merchantId, String accessToken, String refreshToken,
-                      Instant accessTokenExpiresAt, Instant refreshTokenExpiresAt) {
+    public OAuthTokenEntity(String merchantId, String accessToken, String refreshToken,
+                            Instant accessTokenExpiresAt, Instant refreshTokenExpiresAt) {
         this.merchantId = merchantId;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;

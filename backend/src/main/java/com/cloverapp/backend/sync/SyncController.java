@@ -1,6 +1,5 @@
-package com.cloverapp.backend.controller;
+package com.cloverapp.backend.sync;
 
-import com.cloverapp.backend.service.SyncService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,9 +1,7 @@
-package com.cloverapp.backend.controller;
+package com.cloverapp.backend.auth;
 
 import java.net.URI;
 import java.util.Map;
-
-import com.cloverapp.backend.service.RetrieveToken;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -24,13 +22,13 @@ public class CloverAuthController {
 
     private final String authorizeHost;
 
-    private final RetrieveToken retrieveToken;
+    private final RetrieveTokenService retrieveTokenService;
 
-    public CloverAuthController(@Value("${clover.app-id}") String appId, @Value("${clover.redirect-uri}") String redirectUri, @Value("${clover.base-authorize-url}") String authorizeHost, RetrieveToken retrieveToken) {
+    public CloverAuthController(@Value("${clover.app-id}") String appId, @Value("${clover.redirect-uri}") String redirectUri, @Value("${clover.base-authorize-url}") String authorizeHost, RetrieveTokenService retrieveTokenService) {
         this.appId = appId;
         this.redirectUri = redirectUri;
         this.authorizeHost = authorizeHost;
-        this.retrieveToken = retrieveToken;
+        this.retrieveTokenService = retrieveTokenService;
     }
 
     @GetMapping("/connect")
@@ -57,7 +55,7 @@ public class CloverAuthController {
             @RequestParam String state,
             @RequestParam("merchant_id") String merchantId) {
 
-        retrieveToken.fetchAndSaveTokens(code, merchantId);
+        retrieveTokenService.fetchAndSaveTokens(code, merchantId);
 
         URI localRedirect = UriComponentsBuilder
                 .fromUriString("http://localhost:5173/auth-success")
