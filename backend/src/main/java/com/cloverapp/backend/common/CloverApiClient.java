@@ -7,8 +7,8 @@ import org.springframework.web.client.RestClient;
 
 @Component
 public class CloverApiClient {
-    private final OAuthTokenRepository oAuthTokenRepository;
-    private final RestClient restClient;
+    public final OAuthTokenRepository oAuthTokenRepository;
+    public final RestClient restClient;
 
     public CloverApiClient(OAuthTokenRepository oAuthTokenRepository, RetrieveTokenService retrieveTokenService) {
         this.oAuthTokenRepository = oAuthTokenRepository;

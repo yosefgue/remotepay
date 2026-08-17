@@ -1,4 +1,7 @@
-# --- Build Artifacts & Output ---
+target
+.git
+.idea
+.vscode# --- Build Artifacts & Output ---
 **/target/
 **/*.jar
 **/*.war
