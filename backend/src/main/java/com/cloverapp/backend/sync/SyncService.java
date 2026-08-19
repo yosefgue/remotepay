@@ -1,6 +1,6 @@
 package com.cloverapp.backend.sync;
 
-import com.cloverapp.backend.auth.RetrieveTokenService;
+import com.cloverapp.backend.auth.CloverTokenService;
 import com.cloverapp.backend.customer.CustomerResponse;
 import com.cloverapp.backend.inventory.ItemResponse;
 import com.cloverapp.backend.merchant.CloverMerchantResponse;
@@ -15,7 +15,7 @@ public class SyncService {
     private final OAuthTokenRepository oAuthTokenRepository;
     private final RestClient restClient;
 
-    public SyncService(OAuthTokenRepository oAuthTokenRepository, RetrieveTokenService retrieveTokenService) {
+    public SyncService(OAuthTokenRepository oAuthTokenRepository, CloverTokenService retrieveTokenService) {
         this.oAuthTokenRepository = oAuthTokenRepository;
         this.restClient = RestClient.create();
     }

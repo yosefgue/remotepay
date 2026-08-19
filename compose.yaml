@@ -47,12 +47,15 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/src:/app/src
+      - ./backend/target:/app/target
       - maven_cache:/root/.m2
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      SPRING_DEVTOOLS_RESTART_POLL_INTERVAL: 1s
+      SPRING_DEVTOOLS_RESTART_QUIET_PERIOD: 500ms
 
 volumes:
   db_data:

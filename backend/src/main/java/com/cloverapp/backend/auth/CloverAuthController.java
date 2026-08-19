@@ -22,9 +22,9 @@ public class CloverAuthController {
 
     private final String authorizeHost;
 
-    private final RetrieveTokenService retrieveTokenService;
+    private final CloverTokenService retrieveTokenService;
 
-    public CloverAuthController(@Value("${clover.app-id}") String appId, @Value("${clover.redirect-uri}") String redirectUri, @Value("${clover.base-authorize-url}") String authorizeHost, RetrieveTokenService retrieveTokenService) {
+    public CloverAuthController(@Value("${clover.app-id}") String appId, @Value("${clover.redirect-uri}") String redirectUri, @Value("${clover.base-authorize-url}") String authorizeHost, CloverTokenService retrieveTokenService) {
         this.appId = appId;
         this.redirectUri = redirectUri;
         this.authorizeHost = authorizeHost;

@@ -42,8 +42,6 @@ public class OAuthTokenEntity {
         this.refreshTokenExpiresAt = refreshTokenExpiresAt;
     }
 
-    // --- Getters and Setters ---
-
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -62,7 +60,6 @@ public class OAuthTokenEntity {
     public Instant getRefreshTokenExpiresAt() { return refreshTokenExpiresAt; }
     public void setRefreshTokenExpiresAt(Instant refreshTokenExpiresAt) { this.refreshTokenExpiresAt = refreshTokenExpiresAt; }
 
-    // --- Helper logic ---
 
     public boolean isAccessTokenExpired() {
         return accessTokenExpiresAt == null || Instant.now().plusSeconds(60).isAfter(accessTokenExpiresAt);
