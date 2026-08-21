@@ -1,6 +1,6 @@
 // app/components/ProtectedRoute.tsx
 import { Navigate, Outlet } from "react-router";
-import { useAuth, AuthProvider } from "../context/AuthContext";
+import { useAuth, AuthProvider } from "../context/authContext";
 import { Spinner } from "~/components/ui/spinner"
 
 export default function ProtectedRoute() {

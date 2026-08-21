@@ -9,5 +9,4 @@ public class DBTokenService {
         OAuthTokenEntity token = repository.findByMerchantId(merchantId).orElseThrow(() -> new RuntimeException("Merchant token not found"));
         return token.getAccessToken();
     }
-
 }

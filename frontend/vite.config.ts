@@ -8,6 +8,7 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
+    allowedHosts: ["racoon-turtle-avenging.ngrok-free.dev"],
     proxy: {
       '/api': {
         target: 'http://backend-dev:8080',

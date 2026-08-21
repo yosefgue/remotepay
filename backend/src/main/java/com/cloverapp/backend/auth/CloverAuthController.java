@@ -2,7 +2,10 @@ package com.cloverapp.backend.auth;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.UUID;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +35,19 @@ public class CloverAuthController {
     }
 
     @GetMapping("/connect")
-    public ResponseEntity<Map<String, String>> connect(@RequestParam String state) {
+    public ResponseEntity<Void> connect(HttpServletRequest request) {
+        String state = UUID.randomUUID().toString();
+
+        // remove any old sessions
+        HttpSession oldSession = request.getSession(false);
+        if (oldSession != null) {
+            oldSession.invalidate();
+        }
+
+        //create new session
+        HttpSession newSession = request.getSession(true);
+        newSession.setAttribute("state", state);
+
         // build url that wil be sent to the frontend and frontend will redirect
         URI authorizeUri = UriComponentsBuilder.newInstance()
                 .scheme("https")
@@ -46,21 +61,38 @@ public class CloverAuthController {
                 .encode()
                 .toUri();
 
-        return ResponseEntity.ok(Map.of("url", authorizeUri.toString()));
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(authorizeUri)
+                .build();
     }
 
     @GetMapping("/callback")
     public ResponseEntity<Void> callback(
             @RequestParam String code,
             @RequestParam String state,
-            @RequestParam("merchant_id") String merchantId) {
+            @RequestParam("merchant_id") String merchantId,
+            HttpServletRequest request) {
+
+        HttpSession session = request.getSession(false);
+
+        if (session == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String savedState = (String) session.getAttribute("state");
+
+        if (savedState == null || !savedState.equals(state)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        session.invalidate();
 
         retrieveTokenService.fetchAndSaveTokens(code, merchantId);
 
+        HttpSession newSession = request.getSession(true);
+        newSession.setAttribute("merchant_id", merchantId);
+
         URI localRedirect = UriComponentsBuilder
-                .fromUriString("http://localhost:5173/auth-success")
-                .queryParam("merchantId", merchantId)
-                .queryParam("state", state)
+                .fromUriString("https://racoon-turtle-avenging.ngrok-free.dev/dashboard")
                 .build()
                 .toUri();
 
