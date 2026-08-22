@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/clover/sync")
 public class SyncController {
-    private final SyncService syncService;
-    public SyncController(SyncService syncService) {
+    private final SyncClient syncService;
+    public SyncController(SyncClient syncService) {
         this.syncService = syncService;
     }
 

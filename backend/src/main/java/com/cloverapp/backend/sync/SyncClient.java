@@ -1,21 +1,21 @@
 package com.cloverapp.backend.sync;
 
-import com.cloverapp.backend.auth.CloverTokenService;
 import com.cloverapp.backend.customer.CustomerResponse;
 import com.cloverapp.backend.inventory.ItemResponse;
 import com.cloverapp.backend.merchant.CloverMerchantResponse;
 import com.cloverapp.backend.auth.OAuthTokenEntity;
 import com.cloverapp.backend.auth.OAuthTokenRepository;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-@Service
-public class SyncService {
+@Component
+public class SyncClient {
     private final OAuthTokenRepository oAuthTokenRepository;
     private final RestClient restClient;
 
-    public SyncService(OAuthTokenRepository oAuthTokenRepository, CloverTokenService retrieveTokenService) {
+    public SyncClient(OAuthTokenRepository oAuthTokenRepository) {
         this.oAuthTokenRepository = oAuthTokenRepository;
         this.restClient = RestClient.create();
     }
