@@ -28,7 +28,7 @@ public class CloverTokenClient {
     public CloverTokenResponse fetchTokenClover(String code) {
         Objects.requireNonNull(code, "code must not be null");
 
-        String tokenUrl = "https://" + authorizeHost + "/oauth/v2/token";
+        String tokenUrl = authorizeHost + "/oauth/v2/token";
 
         // prepare payload as java object (dictionary, or map in this case)
         Map<String, String> requestPayload = Map.of(
@@ -55,7 +55,7 @@ public class CloverTokenClient {
     public CloverTokenResponse refreshCloverToken(String refreshToken) {
         Objects.requireNonNull(refreshToken, "refreshToken must not be null");
 
-        String tokenUrl = "https://" + authorizeHost + "/oauth/v2/refresh";
+        String tokenUrl = authorizeHost + "/oauth/v2/refresh";
 
         Map<String, String> requestPayload = Map.of(
                 "client_id", appId,

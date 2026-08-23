@@ -1,9 +1,9 @@
 package com.cloverapp.backend.merchant;
 
-import com.cloverapp.backend.auth.OAuthTokenEntity;
 import com.cloverapp.backend.common.CloverApiClient;
-import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MerchantClient {
     private final CloverApiClient cloverApiClient;
 
@@ -11,16 +11,9 @@ public class MerchantClient {
         this.cloverApiClient = cloverApiClient;
     }
 
-    public CloverMerchantResponse getMerchant(String merchantId) {
-        OAuthTokenEntity oAuthTokenEntity = cloverApiClient.oAuthTokenRepository.findByMerchantId(merchantId)
-                .orElseThrow(() -> new RuntimeException("OAuth token not found"));
-        String accessToken = oAuthTokenEntity.getAccessToken();
-
-        return cloverApiClient.restClient.get()
-                .uri("https://apisandbox.dev.clover.com/v3/merchants/{mId}", merchantId)
-                .header("Authorization", "Bearer " + accessToken)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .body(CloverMerchantResponse.class);
+    public CloverMerchantResponse getCloverMerchantResponse(String merchantId) {
+        return cloverApiClient.get(
+                merchantId,
+                "v3/merchants/" + merchantId,  CloverMerchantResponse.class);
     }
 }

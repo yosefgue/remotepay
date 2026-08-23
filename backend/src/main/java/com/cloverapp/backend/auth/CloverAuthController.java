@@ -49,9 +49,7 @@ public class CloverAuthController {
         newSession.setAttribute("state", state);
 
         // build url that wil be sent to the frontend and frontend will redirect
-        URI authorizeUri = UriComponentsBuilder.newInstance()
-                .scheme("https")
-                .host(authorizeHost)
+        URI authorizeUri = UriComponentsBuilder.fromUriString(authorizeHost)
                 .path("/oauth/v2/authorize")
                 .queryParam("client_id", appId)
                 .queryParam("redirect_uri", redirectUri)
