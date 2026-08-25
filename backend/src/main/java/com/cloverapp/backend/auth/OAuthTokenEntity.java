@@ -16,19 +16,19 @@ public class OAuthTokenEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "merchant_id", nullable = false, unique = true)
+    @Column(name = "merchant_id")
     private String merchantId;
 
-    @Column(name = "access_token", nullable = false, length = 2048)
+    @Column(name = "access_token")
     private String accessToken;
 
-    @Column(name = "refresh_token", nullable = false, length = 2048)
+    @Column(name = "refresh_token")
     private String refreshToken;
 
-    @Column(name = "access_token_expires_at", nullable = false)
+    @Column(name = "access_token_expires_at")
     private Instant accessTokenExpiresAt;
 
-    @Column(name = "refresh_token_expires_at", nullable = false)
+    @Column(name = "refresh_token_expires_at")
     private Instant refreshTokenExpiresAt;
 
     public OAuthTokenEntity() {}
