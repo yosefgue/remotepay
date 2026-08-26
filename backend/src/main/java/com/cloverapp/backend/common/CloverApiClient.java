@@ -1,6 +1,5 @@
 package com.cloverapp.backend.common;
 
-import com.cloverapp.backend.auth.OAuthTokenRepository;
 import com.cloverapp.backend.auth.CloverTokenService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -30,5 +29,4 @@ public class CloverApiClient {
                 .retrieve()
                 .body(responseType);
     }
-
 }

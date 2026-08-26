@@ -1,9 +1,9 @@
 package com.cloverapp.backend.auth;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.UUID;
 
+import com.cloverapp.backend.merchant.MerchantService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,18 +20,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class CloverAuthController {
 
     private final String appId;
-
     private final String redirectUri;
-
     private final String authorizeHost;
+    private final AuthOnboardingService authOnboardingService;
 
-    private final CloverTokenService retrieveTokenService;
-
-    public CloverAuthController(@Value("${clover.app-id}") String appId, @Value("${clover.redirect-uri}") String redirectUri, @Value("${clover.base-authorize-url}") String authorizeHost, CloverTokenService retrieveTokenService) {
+    public CloverAuthController(@Value("${clover.app-id}") String appId, @Value("${clover.redirect-uri}") String redirectUri, @Value("${clover.base-authorize-url}") String authorizeHost, AuthOnboardingService authOnboardingService) {
         this.appId = appId;
         this.redirectUri = redirectUri;
         this.authorizeHost = authorizeHost;
-        this.retrieveTokenService = retrieveTokenService;
+        this.authOnboardingService = authOnboardingService;
     }
 
     @GetMapping("/connect")
@@ -84,7 +81,7 @@ public class CloverAuthController {
 
         session.invalidate();
 
-        retrieveTokenService.fetchAndSaveTokens(code, merchantId);
+        authOnboardingService.onboardMerchantWithTokens(code, merchantId);
 
         HttpSession newSession = request.getSession(true);
         newSession.setAttribute("merchant_id", merchantId);

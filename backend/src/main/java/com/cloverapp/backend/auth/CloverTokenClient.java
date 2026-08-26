@@ -1,6 +1,8 @@
 package com.cloverapp.backend.auth;
 
+import com.cloverapp.backend.merchant.CloverMerchantResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -13,15 +15,18 @@ public class CloverTokenClient {
     private final String appId;
     private final String appSecret;
     private final String authorizeHost;
+    private final String apiHost;
     private final RestClient restClient;
 
     public CloverTokenClient(
             @Value("${clover.app-id}") String appId,
             @Value("${clover.app-secret}") String appSecret,
-            @Value("${clover.base-authorize-url}") String authorizeHost) {
+            @Value("${clover.base-authorize-url}") String authorizeHost,
+            @Value("${clover.base-api-url}") String apiHost) {
         this.appId = appId;
         this.appSecret = appSecret;
         this.authorizeHost = authorizeHost;
+        this.apiHost = apiHost;
         this.restClient = RestClient.create();
     }
 
@@ -30,14 +35,12 @@ public class CloverTokenClient {
 
         String tokenUrl = authorizeHost + "/oauth/v2/token";
 
-        // prepare payload as java object (dictionary, or map in this case)
         Map<String, String> requestPayload = Map.of(
                 "client_id", appId,
                 "client_secret", appSecret,
                 "code", code
         );
 
-        // http post clover api for tokens
         CloverTokenResponse response = restClient.post()
                 .uri(tokenUrl)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -76,4 +79,15 @@ public class CloverTokenClient {
         return response;
     }
 
+    public CloverMerchantResponse fetchAuthMerchant(String merchantId, String accessToken) {
+        Objects.requireNonNull(merchantId, "merchantId must not be null");
+        Objects.requireNonNull(accessToken, "accessToken must not be null");
+
+        return restClient.get()
+                .uri(apiHost + "/v3/merchants/{mId}", merchantId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .body(CloverMerchantResponse.class);
+    }
 }

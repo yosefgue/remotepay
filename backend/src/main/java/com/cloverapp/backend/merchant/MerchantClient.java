@@ -11,7 +11,7 @@ public class MerchantClient {
         this.cloverApiClient = cloverApiClient;
     }
 
-    public CloverMerchantResponse getCloverMerchantResponse(String merchantId) {
+    public CloverMerchantResponse fetchMerchant(String merchantId) {
         return cloverApiClient.get(
                 merchantId,
                 "v3/merchants/" + merchantId,  CloverMerchantResponse.class);
