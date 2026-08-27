@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
+// service is created mainly to handle the merchant creation in db before storing tokens
 @Service
 public class AuthOnboardingService {
 

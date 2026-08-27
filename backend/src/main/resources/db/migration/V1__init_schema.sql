@@ -18,3 +18,20 @@ CREATE TABLE oauth_tokens (
         REFERENCES merchants(merchant_id)
         ON DELETE CASCADE
 );
+
+CREATE TABLE customers (
+                           id           BIGSERIAL PRIMARY KEY,
+                           customer_id  VARCHAR(64) NOT NULL,
+                           merchant_id  VARCHAR(64) NOT NULL,
+                           first_name   VARCHAR(100),
+                           last_name    VARCHAR(100),
+                           email        VARCHAR(255),
+                           phone_number VARCHAR(50),
+                           CONSTRAINT uq_customers_merchant_customer UNIQUE (merchant_id, customer_id),
+                           CONSTRAINT fk_customers_merchant
+                               FOREIGN KEY (merchant_id)
+                                   REFERENCES merchants(merchant_id)
+                                   ON DELETE CASCADE
+);
+
+CREATE INDEX idx_customers_merchant_id ON customers (merchant_id);
