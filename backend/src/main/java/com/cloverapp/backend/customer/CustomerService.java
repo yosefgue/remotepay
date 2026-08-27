@@ -22,6 +22,11 @@ public class CustomerService {
         this.customerRepository = customerRepository;
     }
 
+    @Transactional(readOnly = true)
+    public List<CustomerEntity> getCustomers(String merchantId) {
+        return customerRepository.findByMerchantId(merchantId);
+    }
+
     @Transactional
     public void syncCustomers(String merchantId) {
 
