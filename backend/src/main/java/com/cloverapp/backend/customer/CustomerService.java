@@ -23,8 +23,11 @@ public class CustomerService {
     }
 
     @Transactional(readOnly = true)
-    public List<CustomerEntity> getCustomers(String merchantId) {
-        return customerRepository.findByMerchantId(merchantId);
+    public List<CustomerDto> getCustomers(String merchantId) {
+        return customerRepository.findByMerchantId(merchantId)
+                .stream()
+                .map(CustomerDto::fromEntity)
+                .toList();
     }
 
     @Transactional

@@ -4,8 +4,9 @@ export default [
   index("routes/Connect.tsx"),
   layout("components/ProtectedRoute.tsx", [
     route("sync", "routes/sync.tsx"),
-    route("dashboard", "routes/dashboard/dashboard.tsx", [
-      index("routes/dashboard/home.tsx"),
+    layout("routes/dashboard/dashboard.tsx", [
+      route("dashboard", "routes/dashboard/home.tsx"),
+      route("customers", "routes/dashboard/customers/customers.tsx"),
     ]),
   ]),
 ] satisfies RouteConfig;

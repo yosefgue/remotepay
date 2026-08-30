@@ -1,5 +1,7 @@
 package com.cloverapp.backend.customer;
 
+import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,13 +18,25 @@ public class CustomerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CustomerEntity>> getCustomers(@RequestParam String merchantId) {
-        List<CustomerEntity> customers = customerService.getCustomers(merchantId);
+    public ResponseEntity<List<CustomerDto>> getCustomers(HttpSession session) {
+        String merchantId = (String) session.getAttribute("merchant_id");
+
+        if (merchantId == null || merchantId.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<CustomerDto> customers = customerService.getCustomers(merchantId);
         return ResponseEntity.ok(customers);
     }
 
     @PostMapping("/sync")
-    public ResponseEntity<Void> syncCustomers(@RequestParam String merchantId) {
+    public ResponseEntity<Void> syncCustomers(HttpSession session) {
+        String merchantId = (String) session.getAttribute("merchant_id");
+
+        if (merchantId == null || merchantId.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         customerService.syncCustomers(merchantId);
         return ResponseEntity.noContent().build();
     }
