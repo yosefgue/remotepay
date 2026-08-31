@@ -27,7 +27,9 @@ export default function DashboardLayout() {
             <span>Test Merchant</span>
           </div>
         </header>
-        <Outlet />
+        <main className="mx-auto w-full max-w-auto px-6 py-8">
+          <Outlet />
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )

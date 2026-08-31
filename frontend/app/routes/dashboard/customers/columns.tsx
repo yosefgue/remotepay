@@ -22,6 +22,7 @@ export const columns = columnHelper.columns([
     {
       id: "fullName",
       header: "Full Name",
+      filterFn: "includesString",
       cell: (info) => (
         <span className="font-medium text-foreground">{info.getValue()}</span>
       ),
