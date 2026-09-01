@@ -35,3 +35,21 @@ CREATE TABLE customers (
 );
 
 CREATE INDEX idx_customers_merchant_id ON customers (merchant_id);
+
+CREATE TABLE items (
+                       id                   BIGSERIAL PRIMARY KEY,
+                       item_id              VARCHAR(64) NOT NULL,
+                       merchant_id          VARCHAR(64) NOT NULL,
+                       name                 VARCHAR(255) NOT NULL,
+                       price                BIGINT NOT NULL,              -- Price in cents (e.g. 1050 = $10.50)
+                       available            BOOLEAN NOT NULL DEFAULT true,
+                       stock_quantity       DOUBLE PRECISION,             -- NULL = untracked / unlimited
+                       clover_modified_time BIGINT,
+                       CONSTRAINT uq_items_merchant_item UNIQUE (merchant_id, item_id),
+                       CONSTRAINT fk_items_merchant
+                           FOREIGN KEY (merchant_id)
+                               REFERENCES merchants(merchant_id)
+                               ON DELETE CASCADE
+);
+
+CREATE INDEX idx_items_merchant_id ON items (merchant_id);

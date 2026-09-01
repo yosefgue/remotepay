@@ -1,13 +1,12 @@
 package com.cloverapp.backend.sync;
 
 import com.cloverapp.backend.customer.CustomerResponse;
-import com.cloverapp.backend.inventory.ItemResponse;
+import com.cloverapp.backend.inventory.CloverItemResponse;
 import com.cloverapp.backend.merchant.CloverMerchantResponse;
 import com.cloverapp.backend.auth.OAuthTokenEntity;
 import com.cloverapp.backend.auth.OAuthTokenRepository;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 @Component
@@ -24,12 +23,12 @@ public class SyncClient {
         OAuthTokenEntity oAuthTokenEntity = oAuthTokenRepository.findByMerchantId(merchantId)
                 .orElseThrow(() -> new RuntimeException("OAuth token not found"));
         String accessToken = oAuthTokenEntity.getAccessToken();
-        ItemResponse response = restClient.get()
+        CloverItemResponse response = restClient.get()
                 .uri("https://apisandbox.dev.clover.com/v3/merchants/{mId}/items", merchantId)
                 .header("Authorization", "Bearer " + accessToken)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .body(ItemResponse.class);
+                .body(CloverItemResponse.class);
     }
 
     public void getMerchant(String merchantId) {
