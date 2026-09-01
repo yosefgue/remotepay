@@ -7,6 +7,7 @@ export default [
     layout("routes/dashboard/dashboard.tsx", [
       route("dashboard", "routes/dashboard/home.tsx"),
       route("customers", "routes/dashboard/customers/customers.tsx"),
+      route("inventory", "routes/dashboard/inventory/inventory.tsx"),
     ]),
   ]),
 ] satisfies RouteConfig;
