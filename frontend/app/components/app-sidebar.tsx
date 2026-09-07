@@ -22,8 +22,13 @@ const data = {
       icon: LayoutDashboard,
     },
     {
-      title: "Invoices",
-      url: "/invoices",
+      title: "Orders",
+      url: "/orders",
+      icon: ReceiptText,
+    },
+    {
+      title: "Payment Links",
+      url: "/payment-links",
       icon: ReceiptText,
     },
     {

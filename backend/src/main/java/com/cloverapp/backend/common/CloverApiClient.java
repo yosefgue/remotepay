@@ -48,4 +48,18 @@ public class CloverApiClient {
                 .retrieve()
                 .body(responseType);
     }
+
+    public <T> T post(String merchantId, String path, Object requestBody, Class<T> responseType) {
+        String accessToken = cloverTokenService.getValidAccessToken(merchantId);
+
+        return restClient.post()
+                .uri(path)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .body(requestBody)
+                .retrieve()
+                .body(responseType);
+    }
+
 }

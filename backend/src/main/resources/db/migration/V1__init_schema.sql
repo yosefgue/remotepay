@@ -53,3 +53,49 @@ CREATE TABLE items (
 );
 
 CREATE INDEX idx_items_merchant_id ON items (merchant_id);
+
+CREATE TABLE orders (
+                        id              BIGSERIAL PRIMARY KEY,
+                        merchant_id     VARCHAR(64) NOT NULL,
+                        customer_id     VARCHAR(64),
+
+                        link_token      VARCHAR(128) UNIQUE,
+                        clover_order_id VARCHAR(64) UNIQUE,
+
+                        title           VARCHAR(255),
+                        status          VARCHAR(32) NOT NULL DEFAULT 'DRAFT', -- 'DRAFT', 'OPEN', 'PAID', 'EXPIRED', 'CANCELED'
+
+                        currency        VARCHAR(3) NOT NULL DEFAULT 'USD',
+                        subtotal_amount BIGINT NOT NULL DEFAULT 0,       -- before taxes/discounts in cents
+                        tax_amount      BIGINT NOT NULL DEFAULT 0,
+                        total_amount    BIGINT NOT NULL DEFAULT 0,
+
+                        expires_at      TIMESTAMPTZ,
+                        paid_at         TIMESTAMPTZ,
+                        created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+                        CONSTRAINT fk_orders_merchant
+                            FOREIGN KEY (merchant_id)
+                                REFERENCES merchants(merchant_id)
+                                ON DELETE CASCADE
+);
+
+CREATE TABLE order_items (
+                             id              BIGSERIAL PRIMARY KEY,
+                             order_id        BIGINT NOT NULL,
+
+                             clover_item_id  VARCHAR(64),
+                             name            VARCHAR(255) NOT NULL,
+                             price           BIGINT NOT NULL,
+                             quantity        INT NOT NULL DEFAULT 1,
+
+                             CONSTRAINT fk_order_items_order
+                                 FOREIGN KEY (order_id)
+                                     REFERENCES orders(id)
+                                     ON DELETE CASCADE
+);
+
+CREATE INDEX idx_orders_merchant_status ON orders(merchant_id, status);
+CREATE INDEX idx_orders_link_token ON orders(link_token);
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
