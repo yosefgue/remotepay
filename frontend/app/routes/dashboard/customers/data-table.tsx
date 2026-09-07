@@ -15,11 +15,15 @@ import { features, type DataTableFeatures } from "~/lib/data-table-features"
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<DataTableFeatures, TData>[]
   data: TData[]
+  searchColumn?: string
+  searchPlaceholder?: string
 }
 
 export function DataTable<TData extends RowData>({
   columns,
   data,
+  searchColumn,
+  searchPlaceholder = "Search...",
 }: DataTableProps<TData>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 })
@@ -35,12 +39,14 @@ export function DataTable<TData extends RowData>({
 
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Search by name..."
-        value={(table.getColumn("fullName")?.getFilterValue() as string) ?? ""}
-        onChange={(e) => table.getColumn("fullName")?.setFilterValue(e.target.value)}
-        className="max-w-sm"
-      />
+      {searchColumn && table.getColumn(searchColumn) && (
+        <Input
+          placeholder={searchPlaceholder}
+          value={(table.getColumn(searchColumn)?.getFilterValue() as string) ?? ""}
+          onChange={(e) => table.getColumn(searchColumn)?.setFilterValue(e.target.value)}
+          className="max-w-sm"
+        />
+      )}
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>

@@ -56,7 +56,7 @@ export default function Inventory() {
         </Button>
       </div>
 
-      <DataTable columns={columns} data={items} />
+      <DataTable columns={columns} data={items} searchColumn="name" searchPlaceholder="Search by name..." />
     </div>
   )
 }

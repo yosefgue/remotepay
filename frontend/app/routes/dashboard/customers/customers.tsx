@@ -57,7 +57,7 @@ export default function Customers() {
         </Button>
       </div>
 
-      <DataTable columns={columns} data={customers} />
+      <DataTable columns={columns} data={customers} searchColumn="fullName" searchPlaceholder="Search by name..." />
     </div>
   )
 }

@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "~/components/ui/sidebar"
-import { Box, CirclePlus, Contact, LayoutDashboard, PiggyBank, ReceiptText, SquareArrowLeft } from "lucide-react"
+import { Box, CircleDollarSign, Contact, LayoutDashboard, PiggyBank, ReceiptText, SquareArrowLeft } from "lucide-react"
 
 const data = {
   items: [
@@ -29,7 +29,7 @@ const data = {
     {
       title: "Payment Links",
       url: "/payment-links",
-      icon: ReceiptText,
+      icon: CircleDollarSign,
     },
     {
       title: "Inventory",
@@ -61,18 +61,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenu className="mt-2">
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip="New Invoice"
-                render={<Link to="/invoices/new" />}
-                className="flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground font-semibold shadow-sm"
-              >
-                <CirclePlus className="size-4 stroke-3" />
-                <span>New Invoice</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
