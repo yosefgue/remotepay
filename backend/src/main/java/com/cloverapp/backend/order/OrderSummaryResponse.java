@@ -4,20 +4,20 @@ import java.time.Instant;
 
 public record OrderSummaryResponse(
         Long id,
-        String title,
+        String customerName,
         String status,
         Long totalAmount,
         String linkToken,
         Instant createdAt
 ) {
-    public static OrderSummaryResponse fromEntity(OrderEntity entity) {
+    public static OrderSummaryResponse of(OrderEntity order, String customerName) {
         return new OrderSummaryResponse(
-                entity.getId(),
-                entity.getTitle(),
-                entity.getStatus(),
-                entity.getTotalAmount(),
-                entity.getLinkToken(),
-                entity.getCreatedAt()
+                order.getId(),
+                customerName,
+                order.getStatus(),
+                order.getTotalAmount(),
+                order.getLinkToken(),
+                order.getCreatedAt()
         );
     }
 }

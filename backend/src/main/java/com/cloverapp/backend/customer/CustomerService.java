@@ -31,6 +31,37 @@ public class CustomerService {
     }
 
     @Transactional
+    public CustomerDto createCustomer(String merchantId, CustomerRequest request) {
+        CloverCustomerRequest cloverReq = new CloverCustomerRequest(
+                request.firstName(),
+                request.lastName()
+        );
+
+        CustomerResponse.CustomerDto created = customerClient.createCustomer(merchantId, cloverReq);
+        String customerId = created.id();
+
+        if (request.email() != null && !request.email().isBlank()) {
+            customerClient.addEmailAddress(merchantId, customerId, request.email().trim());
+        }
+
+        if (request.phoneNumber() != null && !request.phoneNumber().isBlank()) {
+            customerClient.addPhoneNumber(merchantId, customerId, request.phoneNumber().trim());
+        }
+
+        CustomerEntity entity = new CustomerEntity(
+                customerId,
+                merchantId,
+                request.firstName(),
+                request.lastName(),
+                request.email(),
+                request.phoneNumber()
+        );
+        CustomerEntity saved = customerRepository.save(entity);
+
+        return CustomerDto.fromEntity(saved);
+    }
+
+    @Transactional
     public void syncCustomers(String merchantId) {
 
         Map<String, CustomerEntity> existingCustomersMap = customerRepository.findByMerchantId(merchantId)

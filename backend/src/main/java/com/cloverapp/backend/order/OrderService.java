@@ -1,5 +1,7 @@
 package com.cloverapp.backend.order;
 
+import com.cloverapp.backend.customer.CustomerEntity;
+import com.cloverapp.backend.customer.CustomerRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,21 +9,26 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final CustomerRepository customerRepository;
     private final OrderClient orderClient;
 
     public OrderService(
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
+            CustomerRepository customerRepository,
             OrderClient orderClient
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.customerRepository = customerRepository;
         this.orderClient = orderClient;
     }
 
@@ -29,7 +36,7 @@ public class OrderService {
     public OrderDetailResponse saveDraft(String merchantId, OrderRequest request) {
         OrderEntity order = new OrderEntity();
         order.setMerchantId(merchantId);
-        order.setCustomerId(request.customerId());
+        order.setCustomerId(resolveCustomerId(merchantId, request));
         order.setTitle(request.title());
 
         long subtotal = calculateSubtotal(request.items());
@@ -53,7 +60,7 @@ public class OrderService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only draft orders can be edited");
         }
 
-        order.setCustomerId(request.customerId());
+        order.setCustomerId(resolveCustomerId(merchantId, request));
         order.setTitle(request.title());
 
         long subtotal = calculateSubtotal(request.items());
@@ -80,10 +87,59 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<OrderSummaryResponse> getOrders(String merchantId) {
-        return orderRepository.findByMerchantId(merchantId)
+        List<OrderEntity> orders = orderRepository.findByMerchantId(merchantId);
+        if (orders.isEmpty()) {
+            return List.of();
+        }
+
+        Map<String, String> customerNames = customerRepository.findByMerchantId(merchantId)
                 .stream()
-                .map(OrderSummaryResponse::fromEntity)
+                .filter(c -> c.getCustomerId() != null && !c.getCustomerId().isBlank())
+                .collect(Collectors.toMap(
+                        CustomerEntity::getCustomerId,
+                        c -> c.getFullName() != null ? c.getFullName() : "",
+                        (a, b) -> a
+                ));
+
+        return orders.stream()
+                .map(order -> {
+                    String name = order.getCustomerId() != null
+                            ? customerNames.get(order.getCustomerId())
+                            : null;
+                    return OrderSummaryResponse.of(order, name);
+                })
                 .toList();
+    }
+
+    private String resolveCustomerId(String merchantId, OrderRequest request) {
+        if (request.customerId() != null && !request.customerId().isBlank()) {
+            return request.customerId();
+        }
+
+        if (request.customer() != null && hasAnyCustomerInfo(request.customer())) {
+            OrderRequest.CustomerInfo info = request.customer();
+
+            CustomerEntity customer = new CustomerEntity(
+                    null,
+                    merchantId,
+                    info.firstName(),
+                    info.lastName(),
+                    info.email(),
+                    info.phoneNumber()
+            );
+            customerRepository.save(customer);
+
+            return null;
+        }
+
+        return null;
+    }
+
+    private boolean hasAnyCustomerInfo(OrderRequest.CustomerInfo info) {
+        return (info.firstName() != null && !info.firstName().isBlank())
+                || (info.lastName() != null && !info.lastName().isBlank())
+                || (info.email() != null && !info.email().isBlank())
+                || (info.phoneNumber() != null && !info.phoneNumber().isBlank());
     }
 
     private long calculateSubtotal(List<OrderRequest.ItemRequest> items) {

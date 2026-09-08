@@ -19,9 +19,8 @@ public class CustomerController {
 
     @GetMapping
     public ResponseEntity<List<CustomerDto>> getCustomers(HttpSession session) {
-        String merchantId = (String) session.getAttribute("merchant_id");
-
-        if (merchantId == null || merchantId.isBlank()) {
+        String merchantId = getMerchantId(session);
+        if (merchantId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
@@ -29,15 +28,33 @@ public class CustomerController {
         return ResponseEntity.ok(customers);
     }
 
+    @PostMapping
+    public ResponseEntity<CustomerDto> createCustomer(
+            HttpSession session,
+            @RequestBody CustomerRequest request
+    ) {
+        String merchantId = getMerchantId(session);
+        if (merchantId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        CustomerDto created = customerService.createCustomer(merchantId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
     @PostMapping("/sync")
     public ResponseEntity<Void> syncCustomers(HttpSession session) {
-        String merchantId = (String) session.getAttribute("merchant_id");
-
-        if (merchantId == null || merchantId.isBlank()) {
+        String merchantId = getMerchantId(session);
+        if (merchantId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         customerService.syncCustomers(merchantId);
         return ResponseEntity.noContent().build();
+    }
+
+    private String getMerchantId(HttpSession session) {
+        String merchantId = (String) session.getAttribute("merchant_id");
+        return (merchantId == null || merchantId.isBlank()) ? null : merchantId;
     }
 }

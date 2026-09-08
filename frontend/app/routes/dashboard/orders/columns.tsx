@@ -3,7 +3,7 @@ import { type DataTableFeatures } from "~/lib/data-table-features"
 
 export type Order = {
   id: number
-  title: string | null
+  customerName: string | null
   status: string
   totalAmount: number | null
   linkToken: string | null
@@ -21,8 +21,8 @@ export const columns = columnHelper.columns([
       </span>
     ),
   }),
-  columnHelper.accessor("title", {
-    header: "Title",
+  columnHelper.accessor("customerName", {
+    header: "Customer",
     filterFn: "includesString",
     cell: (info) => (
       <span className="font-medium text-foreground">

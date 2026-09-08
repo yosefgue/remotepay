@@ -13,9 +13,9 @@ export default function DashboardLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b justify-between px-3">
-          <div className="flex items-center gap-2 ">
+      <SidebarInset className="bg-muted/50 dark:bg-background">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background justify-between px-4 sticky top-0 z-10">
+          <div className="flex items-center gap-2">
             <SidebarTrigger />
             <Separator
               orientation="vertical"
@@ -27,9 +27,9 @@ export default function DashboardLayout() {
             <span>Test Merchant</span>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-auto px-6 py-8">
+        <div className="flex-1 w-full px-6 py-8">
           <Outlet />
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

@@ -44,10 +44,10 @@ export function DataTable<TData extends RowData>({
           placeholder={searchPlaceholder}
           value={(table.getColumn(searchColumn)?.getFilterValue() as string) ?? ""}
           onChange={(e) => table.getColumn(searchColumn)?.setFilterValue(e.target.value)}
-          className="max-w-sm"
+          className="max-w-sm bg-background"
         />
       )}
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden rounded-md border bg-card shadow-xs">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

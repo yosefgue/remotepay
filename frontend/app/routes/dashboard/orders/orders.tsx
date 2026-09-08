@@ -39,9 +39,9 @@ export default function Orders() {
       </div>
 
       {orders.length > 0 ? (
-        <DataTable columns={columns} data={orders} searchColumn="title" searchPlaceholder="Search by title..." />
+        <DataTable columns={columns} data={orders} searchColumn="customerName" searchPlaceholder="Search by customer..." />
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-16">
+        <div className="flex flex-col items-center justify-center rounded-md border border-dashed bg-card py-16 shadow-xs">
           <ReceiptText className="size-10 text-muted-foreground/40" />
           <h3 className="mt-4 text-lg font-semibold">No orders yet</h3>
           <p className="mt-1 text-sm text-muted-foreground">
