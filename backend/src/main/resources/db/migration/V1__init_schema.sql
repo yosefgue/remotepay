@@ -21,7 +21,7 @@ CREATE TABLE oauth_tokens (
 
 CREATE TABLE customers (
                            id           BIGSERIAL PRIMARY KEY,
-                           customer_id  VARCHAR(64),
+                           customer_id  VARCHAR(64) NOT NULL,
                            merchant_id  VARCHAR(64) NOT NULL,
                            first_name   VARCHAR(100),
                            last_name    VARCHAR(100),
@@ -57,7 +57,7 @@ CREATE INDEX idx_items_merchant_id ON items (merchant_id);
 CREATE TABLE orders (
                         id              BIGSERIAL PRIMARY KEY,
                         merchant_id     VARCHAR(64) NOT NULL,
-                        customer_id     VARCHAR(64),
+                        customer_id     VARCHAR(64) NOT NULL,
 
                         link_token      VARCHAR(128) UNIQUE,
                         clover_order_id VARCHAR(64) UNIQUE,

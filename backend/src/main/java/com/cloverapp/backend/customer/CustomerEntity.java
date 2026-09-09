@@ -10,7 +10,7 @@ public class CustomerEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "customer_id")
+    @Column(name = "customer_id", nullable = false)
     private String customerId;
 
     @Column(name = "merchant_id", nullable = false)
@@ -60,15 +60,18 @@ public class CustomerEntity {
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
     public String getFullName() {
-        if (firstName == null && lastName == null) {
-            return null;
+        String first = firstName != null ? firstName.trim() : "";
+        String last = lastName != null ? lastName.trim() : "";
+        String full = (first + " " + last).trim();
+        if (!full.isEmpty()) {
+            return full;
         }
-        if (firstName == null) {
-            return lastName;
+        if (email != null && !email.isBlank()) {
+            return email.trim();
         }
-        if (lastName == null) {
-            return firstName;
+        if (phoneNumber != null && !phoneNumber.isBlank()) {
+            return phoneNumber.trim();
         }
-        return firstName + " " + lastName;
+        return null;
     }
 }

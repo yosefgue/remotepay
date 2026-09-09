@@ -1,7 +1,6 @@
 package com.cloverapp.backend.order;
 
-import com.cloverapp.backend.customer.CustomerEntity;
-import com.cloverapp.backend.customer.CustomerRepository;
+import com.cloverapp.backend.customer.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,18 +16,18 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
-    private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
     private final OrderClient orderClient;
 
     public OrderService(
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
-            CustomerRepository customerRepository,
+            CustomerService customerService,
             OrderClient orderClient
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
-        this.customerRepository = customerRepository;
+        this.customerService = customerService;
         this.orderClient = orderClient;
     }
 
@@ -92,14 +91,7 @@ public class OrderService {
             return List.of();
         }
 
-        Map<String, String> customerNames = customerRepository.findByMerchantId(merchantId)
-                .stream()
-                .filter(c -> c.getCustomerId() != null && !c.getCustomerId().isBlank())
-                .collect(Collectors.toMap(
-                        CustomerEntity::getCustomerId,
-                        c -> c.getFullName() != null ? c.getFullName() : "",
-                        (a, b) -> a
-                ));
+        Map<String, String> customerNames = customerService.getCustomerNamesMap(merchantId);
 
         return orders.stream()
                 .map(order -> {
@@ -117,19 +109,16 @@ public class OrderService {
         }
 
         if (request.customer() != null && hasAnyCustomerInfo(request.customer())) {
-            OrderRequest.CustomerInfo info = request.customer();
+            CustomerRequest cloverRequest = new CustomerRequest(
+                    request.customer().firstName(),
+                    request.customer().lastName(),
+                    request.customer().email(),
+                    request.customer().phoneNumber()
+                    );
 
-            CustomerEntity customer = new CustomerEntity(
-                    null,
-                    merchantId,
-                    info.firstName(),
-                    info.lastName(),
-                    info.email(),
-                    info.phoneNumber()
-            );
-            customerRepository.save(customer);
+            CustomerResponse createdCustomer = customerService.createCustomer(merchantId, cloverRequest);
 
-            return null;
+            return createdCustomer.customerId();
         }
 
         return null;

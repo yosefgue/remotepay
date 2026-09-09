@@ -13,18 +13,20 @@ import { Plus, Minus, Trash2, ArrowLeft, Search, Link as LinkIcon } from "lucide
 /* ------------------------------------------------------------------ */
 
 type OrderFormValues = {
-  title: string
+  title?: string
   customerName: string
   email: string
   phone: string
 }
 
 type Item = { id: string; name: string; price: number | null; stockQuantity: number | null }
-type CustomerOption = { id: string; firstName: string | null; lastName: string | null; email: string | null; phoneNumber: string | null }
+type CustomerOption = { customerId?: string; id?: string; firstName: string | null; lastName: string | null; email: string | null; phoneNumber: string | null }
 type LineItem = { key: string; itemId: string | null; name: string; price: number; quantity: number }
 
 const fmt = (cents: number) => `$${(cents / 100).toFixed(2)}`
-const fullName = (c: CustomerOption) => [c.firstName, c.lastName].filter(Boolean).join(" ") || "Unnamed"
+const getCustomerId = (c: CustomerOption) => c.customerId || c.id || ""
+const fullName = (c: CustomerOption) =>
+  [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email || c.phoneNumber || "Unnamed Customer"
 
 export async function clientLoader(): Promise<{ items: Item[]; customers: CustomerOption[] }> {
   const [itemsRes, customersRes] = await Promise.all([
@@ -41,7 +43,7 @@ export async function clientLoader(): Promise<{ items: Item[]; customers: Custom
 /* ------------------------------------------------------------------ */
 
 export default function NewOrder() {
-  const { items, customers } = useLoaderData() as { items: Item[]; customers: CustomerOption[] }
+  const { items = [], customers = [] } = (useLoaderData() || {}) as { items: Item[]; customers: CustomerOption[] }
   const navigate = useNavigate()
 
   // Form State via React Hook Form
@@ -62,6 +64,7 @@ export default function NewOrder() {
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const customerName = watch("customerName")
@@ -76,9 +79,15 @@ export default function NewOrder() {
   const subtotal = lineItems.reduce((acc, i) => acc + i.price * i.quantity, 0)
   const filteredItems = items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()))
 
-  // Filter existing customers by typed name
+  // Filter existing customers by typed name, email, or phone
   const matchingCustomers = customerName && customerName.trim()
-    ? customers.filter((c) => fullName(c).toLowerCase().includes(customerName.trim().toLowerCase()))
+    ? customers.filter((c) => {
+        const query = customerName.trim().toLowerCase()
+        const name = fullName(c).toLowerCase()
+        const email = (c.email || "").toLowerCase()
+        const phone = (c.phoneNumber || "").toLowerCase()
+        return name.includes(query) || email.includes(query) || phone.includes(query)
+      })
     : []
 
   // Close suggestions on outside click
@@ -94,8 +103,10 @@ export default function NewOrder() {
 
   // Select an existing customer: fills fields & links customerId
   const selectExistingCustomer = (c: CustomerOption) => {
+    const custId = getCustomerId(c)
+    if (!custId) return
     setValue("customerName", fullName(c), { shouldValidate: true })
-    setSelectedCustomerId(c.id)
+    setSelectedCustomerId(custId)
     setValue("email", c.email || "")
     setValue("phone", c.phoneNumber || "")
     setShowSuggestions(false)
@@ -128,8 +139,9 @@ export default function NewOrder() {
   const onSubmit = async (data: OrderFormValues) => {
     if (lineItems.length === 0) return
     setIsSaving(true)
+    setSubmitError(null)
     try {
-      const orderTitle = data.title.trim()
+      const orderTitle = data.title?.trim() || null
 
       const [firstName, ...rest] = data.customerName.trim().split(" ")
       const lastName = rest.join(" ")
@@ -157,7 +169,14 @@ export default function NewOrder() {
           items: lineItems.map((li) => ({ itemId: li.itemId, name: li.name, price: li.price, quantity: li.quantity })),
         }),
       })
-      if (res.ok) navigate("/orders")
+      if (res.ok) {
+        navigate("/orders")
+      } else {
+        const err = await res.json().catch(() => null)
+        setSubmitError(err?.message || "Failed to save order. Please try again.")
+      }
+    } catch (e: any) {
+      setSubmitError(e?.message || "An unexpected error occurred while saving the order.")
     } finally {
       setIsSaving(false)
     }
@@ -188,20 +207,13 @@ export default function NewOrder() {
               {/* Order Title */}
               <div className="space-y-2">
                 <Label htmlFor="title">
-                  Order Title <span className="text-destructive">*</span>
+                  Order Title <span className="text-xs font-normal text-muted-foreground">(optional)</span>
                 </Label>
                 <Input
                   id="title"
                   placeholder="e.g. Table 4, Delivery #12"
-                  aria-invalid={!!errors.title}
-                  {...register("title", {
-                    required: "Order title is required",
-                    validate: (v) => !!v.trim() || "Order title cannot be empty",
-                  })}
+                  {...register("title")}
                 />
-                {errors.title && (
-                  <p className="text-xs text-destructive">{errors.title.message}</p>
-                )}
               </div>
 
               <Separator />
@@ -261,7 +273,7 @@ export default function NewOrder() {
                         <div className="px-2 py-1 text-[11px] font-medium text-muted-foreground">Existing Customers</div>
                         {matchingCustomers.map((c) => (
                           <button
-                            key={c.id}
+                            key={getCustomerId(c)}
                             type="button"
                             onClick={() => selectExistingCustomer(c)}
                             className="w-full text-left px-2.5 py-1.5 rounded-sm text-sm hover:bg-muted transition-colors cursor-pointer flex flex-col"
@@ -371,6 +383,12 @@ export default function NewOrder() {
               )}
 
               <Separator />
+
+              {submitError && (
+                <div className="rounded-md bg-destructive/10 p-3 text-xs text-destructive font-medium">
+                  {submitError}
+                </div>
+              )}
 
               <div className="flex gap-3">
                 <Button type="submit" disabled={lineItems.length === 0 || isSaving} className="flex-1">

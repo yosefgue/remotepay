@@ -23,33 +23,34 @@ public class CustomerService {
     }
 
     @Transactional(readOnly = true)
-    public List<CustomerDto> getCustomers(String merchantId) {
+    public List<CustomerResponse> getCustomers(String merchantId) {
         return customerRepository.findByMerchantId(merchantId)
                 .stream()
-                .map(CustomerDto::fromEntity)
+                .map(CustomerResponse::fromEntity)
                 .toList();
     }
 
     @Transactional
-    public CustomerDto createCustomer(String merchantId, CustomerRequest request) {
+    public CustomerResponse createCustomer(String merchantId, CustomerRequest request) {
+        List<CloverCustomerRequest.EmailRequest> emails = (request.email() != null && !request.email().isBlank())
+                ? List.of(new CloverCustomerRequest.EmailRequest(request.email().trim()))
+                : null;
+
+        List<CloverCustomerRequest.PhoneRequest> phones = (request.phoneNumber() != null && !request.phoneNumber().isBlank())
+                ? List.of(new CloverCustomerRequest.PhoneRequest(request.phoneNumber().trim()))
+                : null;
+
         CloverCustomerRequest cloverReq = new CloverCustomerRequest(
                 request.firstName(),
-                request.lastName()
+                request.lastName(),
+                emails,
+                phones
         );
 
-        CustomerResponse.CustomerDto created = customerClient.createCustomer(merchantId, cloverReq);
-        String customerId = created.id();
-
-        if (request.email() != null && !request.email().isBlank()) {
-            customerClient.addEmailAddress(merchantId, customerId, request.email().trim());
-        }
-
-        if (request.phoneNumber() != null && !request.phoneNumber().isBlank()) {
-            customerClient.addPhoneNumber(merchantId, customerId, request.phoneNumber().trim());
-        }
+        CloverCustomerResponse.CustomerDto created = customerClient.createCustomer(merchantId, cloverReq);
 
         CustomerEntity entity = new CustomerEntity(
-                customerId,
+                created.id(),
                 merchantId,
                 request.firstName(),
                 request.lastName(),
@@ -58,7 +59,7 @@ public class CustomerService {
         );
         CustomerEntity saved = customerRepository.save(entity);
 
-        return CustomerDto.fromEntity(saved);
+        return CustomerResponse.fromEntity(saved);
     }
 
     @Transactional
@@ -66,19 +67,20 @@ public class CustomerService {
 
         Map<String, CustomerEntity> existingCustomersMap = customerRepository.findByMerchantId(merchantId)
                 .stream()
-                .collect(Collectors.toMap(CustomerEntity::getCustomerId, Function.identity()));
+                .filter(c -> c.getCustomerId() != null && !c.getCustomerId().isBlank())
+                .collect(Collectors.toMap(CustomerEntity::getCustomerId, Function.identity(), (a, b) -> a));
 
         List<CustomerEntity> toSave = new ArrayList<>();
         int offset = 0;
 
         while (true) {
-            CustomerResponse response = customerClient.getCustomers(merchantId, PAGE_LIMIT, offset);
+            CloverCustomerResponse response = customerClient.getCustomers(merchantId, PAGE_LIMIT, offset);
 
             if (response == null || response.elements() == null || response.elements().isEmpty()) {
                 break;
             }
 
-            for (CustomerResponse.CustomerDto dto : response.elements()) {
+            for (CloverCustomerResponse.CustomerDto dto : response.elements()) {
                 CustomerEntity entity = existingCustomersMap.getOrDefault(
                         dto.id(),
                         new CustomerEntity(dto.id(), merchantId, null, null, null, null)
@@ -101,5 +103,17 @@ public class CustomerService {
         if (!toSave.isEmpty()) {
             customerRepository.saveAll(toSave);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, String> getCustomerNamesMap(String merchantId) {
+        return customerRepository.findByMerchantId(merchantId)
+                .stream()
+                .filter(c -> c.getCustomerId() != null && !c.getCustomerId().isBlank())
+                .collect(Collectors.toMap(
+                        CustomerEntity::getCustomerId,
+                        c -> c.getFullName() != null ? c.getFullName() : "",
+                        (a, b) -> a
+                ));
     }
 }

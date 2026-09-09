@@ -18,18 +18,18 @@ public class CustomerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CustomerDto>> getCustomers(HttpSession session) {
+    public ResponseEntity<List<CustomerResponse>> getCustomers(HttpSession session) {
         String merchantId = getMerchantId(session);
         if (merchantId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        List<CustomerDto> customers = customerService.getCustomers(merchantId);
+        List<CustomerResponse> customers = customerService.getCustomers(merchantId);
         return ResponseEntity.ok(customers);
     }
 
     @PostMapping
-    public ResponseEntity<CustomerDto> createCustomer(
+    public ResponseEntity<CustomerResponse> createCustomer(
             HttpSession session,
             @RequestBody CustomerRequest request
     ) {
@@ -38,7 +38,7 @@ public class CustomerController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        CustomerDto created = customerService.createCustomer(merchantId, request);
+        CustomerResponse created = customerService.createCustomer(merchantId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

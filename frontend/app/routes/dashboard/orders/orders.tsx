@@ -13,7 +13,6 @@ export async function clientLoader(): Promise<Order[]> {
   if (!response.ok) {
     throw new Error("Failed to load orders")
   }
-
   return response.json()
 }
 
