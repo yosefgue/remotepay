@@ -2,6 +2,7 @@ import { type RouteConfig, route, index, layout } from "@react-router/dev/routes
 
 export default [
   index("routes/connect.tsx"),
+  route("pay/:token", "routes/pay.tsx"),
   layout("components/ProtectedRoute.tsx", [
     route("sync", "routes/sync.tsx"),
     layout("routes/dashboard/dashboard.tsx", [

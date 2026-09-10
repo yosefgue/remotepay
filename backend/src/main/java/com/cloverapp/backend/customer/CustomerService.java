@@ -1,5 +1,6 @@
 package com.cloverapp.backend.customer;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,22 +31,19 @@ public class CustomerService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public CustomerResponse getCustomer(String merchantId, String customerId) {
+        if (customerId == null || customerId.isBlank()) {
+            return null;
+        }
+        return customerRepository.findByMerchantIdAndCustomerId(merchantId, customerId)
+                .map(CustomerResponse::fromEntity)
+                .orElse(null);
+    }
+
     @Transactional
     public CustomerResponse createCustomer(String merchantId, CustomerRequest request) {
-        List<CloverCustomerRequest.EmailRequest> emails = (request.email() != null && !request.email().isBlank())
-                ? List.of(new CloverCustomerRequest.EmailRequest(request.email().trim()))
-                : null;
-
-        List<CloverCustomerRequest.PhoneRequest> phones = (request.phoneNumber() != null && !request.phoneNumber().isBlank())
-                ? List.of(new CloverCustomerRequest.PhoneRequest(request.phoneNumber().trim()))
-                : null;
-
-        CloverCustomerRequest cloverReq = new CloverCustomerRequest(
-                request.firstName(),
-                request.lastName(),
-                emails,
-                phones
-        );
+        CloverCustomerRequest cloverReq = getCloverReq(request);
 
         CloverCustomerResponse.CustomerDto created = customerClient.createCustomer(merchantId, cloverReq);
 
@@ -60,6 +58,23 @@ public class CustomerService {
         CustomerEntity saved = customerRepository.save(entity);
 
         return CustomerResponse.fromEntity(saved);
+    }
+
+    private static @NonNull CloverCustomerRequest getCloverReq(CustomerRequest request) {
+        List<CloverCustomerRequest.EmailRequest> emails = (request.email() != null && !request.email().isBlank())
+                ? List.of(new CloverCustomerRequest.EmailRequest(request.email().trim()))
+                : null;
+
+        List<CloverCustomerRequest.PhoneRequest> phones = (request.phoneNumber() != null && !request.phoneNumber().isBlank())
+                ? List.of(new CloverCustomerRequest.PhoneRequest(request.phoneNumber().trim()))
+                : null;
+
+        return new CloverCustomerRequest(
+                request.firstName(),
+                request.lastName(),
+                emails,
+                phones
+        );
     }
 
     @Transactional

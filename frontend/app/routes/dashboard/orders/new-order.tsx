@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { useLoaderData, useNavigate } from "react-router"
+import { useLoaderData, useNavigate, redirect } from "react-router"
 import { useForm } from "react-hook-form"
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card"
 import { Input } from "~/components/ui/input"
@@ -33,6 +33,9 @@ export async function clientLoader(): Promise<{ items: Item[]; customers: Custom
     fetch("/api/items", { credentials: "include" }),
     fetch("/api/customers", { credentials: "include" }),
   ])
+  if (itemsRes.status === 401 || customersRes.status === 401) {
+    throw redirect("/")
+  }
   if (!itemsRes.ok) throw new Error("Failed to load items")
   if (!customersRes.ok) throw new Error("Failed to load customers")
   return { items: await itemsRes.json(), customers: await customersRes.json() }
@@ -391,10 +394,10 @@ export default function NewOrder() {
               )}
 
               <div className="flex gap-3">
-                <Button type="submit" disabled={lineItems.length === 0 || isSaving} className="flex-1">
+                <Button type="submit" variant="outline" disabled={lineItems.length === 0 || isSaving} className="flex-1">
                   {isSaving ? "Saving…" : "Save as Draft"}
                 </Button>
-                <Button type="button" variant="outline" disabled={lineItems.length === 0} className="flex-1">
+                <Button type="button" disabled={lineItems.length === 0} className="flex-1">
                   <LinkIcon className="h-4 w-4" /> Generate Link
                 </Button>
               </div>

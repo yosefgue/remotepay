@@ -11,12 +11,14 @@ import {
 import { Input } from "~/components/ui/input"
 import { Button } from "~/components/ui/button"
 import { features, type DataTableFeatures } from "~/lib/data-table-features"
+import { cn } from "~/lib/utils"
 
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<DataTableFeatures, TData>[]
   data: TData[]
   searchColumn?: string
   searchPlaceholder?: string
+  onRowClick?: (row: TData) => void
 }
 
 export function DataTable<TData extends RowData>({
@@ -24,6 +26,7 @@ export function DataTable<TData extends RowData>({
   data,
   searchColumn,
   searchPlaceholder = "Search...",
+  onRowClick,
 }: DataTableProps<TData>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 })
@@ -68,6 +71,8 @@ export function DataTable<TData extends RowData>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={cn(onRowClick && "cursor-pointer hover:bg-muted/50 transition-colors")}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

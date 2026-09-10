@@ -1,14 +1,19 @@
-import { useLoaderData } from "react-router"
-import { Link } from "react-router"
+import { useState } from "react"
+import { useLoaderData, Link, redirect } from "react-router"
 import { columns, type Order } from "./columns"
 import { DataTable } from "../customers/data-table"
 import { Button } from "~/components/ui/button"
 import { Plus, ReceiptText } from "lucide-react"
+import { OrderDetailSheet } from "./order-detail-sheet"
 
 export async function clientLoader(): Promise<Order[]> {
   const response = await fetch("/api/orders", {
     credentials: "include",
   })
+
+  if (response.status === 401) {
+    throw redirect("/")
+  }
 
   if (!response.ok) {
     throw new Error("Failed to load orders")
@@ -18,6 +23,7 @@ export async function clientLoader(): Promise<Order[]> {
 
 export default function Orders() {
   const orders = useLoaderData() as Order[]
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null)
 
   return (
     <div className="space-y-6">
@@ -30,7 +36,7 @@ export default function Orders() {
         </div>
 
         <Link to="/orders/new">
-          <Button>
+          <Button className="px-6">
             <Plus className="h-4 w-4" />
             New Order
           </Button>
@@ -38,7 +44,13 @@ export default function Orders() {
       </div>
 
       {orders.length > 0 ? (
-        <DataTable columns={columns} data={orders} searchColumn="customerName" searchPlaceholder="Search by customer..." />
+        <DataTable
+          columns={columns}
+          data={orders}
+          searchColumn="customerName"
+          searchPlaceholder="Search by customer..."
+          onRowClick={(order) => setSelectedOrderId(order.id)}
+        />
       ) : (
         <div className="flex flex-col items-center justify-center rounded-md border border-dashed bg-card py-16 shadow-xs">
           <ReceiptText className="size-10 text-muted-foreground/40" />
@@ -48,6 +60,11 @@ export default function Orders() {
           </p>
         </div>
       )}
+
+      <OrderDetailSheet
+        orderId={selectedOrderId}
+        onClose={() => setSelectedOrderId(null)}
+      />
     </div>
   )
 }

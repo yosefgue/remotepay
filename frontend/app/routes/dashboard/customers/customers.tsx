@@ -1,5 +1,5 @@
 // app/routes/dashboard/customers.tsx
-import { useLoaderData, useRevalidator } from "react-router"
+import { useLoaderData, useRevalidator, redirect } from "react-router"
 import { useState } from "react"
 import { columns, type Customer } from "./columns"
 import { DataTable } from "./data-table"
@@ -10,6 +10,10 @@ export async function clientLoader(): Promise<Customer[]> {
   const response = await fetch("/api/customers", {
     credentials: "include",
   })
+
+  if (response.status === 401) {
+    throw redirect("/")
+  }
 
   if (!response.ok) {
     throw new Error("Failed to load customers from backend")

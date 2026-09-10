@@ -1,4 +1,4 @@
-import { useLoaderData, useRevalidator } from "react-router"
+import { useLoaderData, useRevalidator, redirect } from "react-router"
 import { useState } from "react"
 import { columns, type Item } from "./columns"
 import { DataTable } from "../customers/data-table"
@@ -9,6 +9,10 @@ export async function clientLoader(): Promise<Item[]> {
   const response = await fetch("/api/items", {
     credentials: "include",
   })
+
+  if (response.status === 401) {
+    throw redirect("/")
+  }
 
   if (!response.ok) {
     throw new Error("Failed to load items from backend")

@@ -6,10 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -42,12 +44,7 @@ public class OrderService {
         order.setSubtotalAmount(subtotal);
         order.setTotalAmount(subtotal);
 
-        OrderEntity savedOrder = orderRepository.save(order);
-
-        List<OrderItemEntity> itemEntities = toItemEntities(savedOrder.getId(), request.items());
-        List<OrderItemEntity> savedItems = orderItemRepository.saveAll(itemEntities);
-
-        return OrderDetailResponse.of(savedOrder, savedItems);
+        return saveOrderAndItems(order, request.items());
     }
 
     @Transactional
@@ -66,13 +63,35 @@ public class OrderService {
         order.setSubtotalAmount(subtotal);
         order.setTotalAmount(subtotal);
 
-        OrderEntity updatedOrder = orderRepository.save(order);
-
         orderItemRepository.deleteByOrderId(orderId);
-        List<OrderItemEntity> newItemEntities = toItemEntities(orderId, request.items());
-        List<OrderItemEntity> savedItems = orderItemRepository.saveAll(newItemEntities);
+        return saveOrderAndItems(order, request.items());
+    }
 
-        return OrderDetailResponse.of(updatedOrder, savedItems);
+    @Transactional
+    public OrderDetailResponse createOrder(String merchantId, OrderRequest request) {
+        String customerId = resolveCustomerId(merchantId, request);
+
+        CloverOrderRequest cloverReq = CloverOrderRequest.fromItemRequests(request.items());
+        CloverOrderResponse cloverResponse = orderClient.createAtomicOrder(merchantId, cloverReq);
+
+        OrderEntity order = new OrderEntity();
+        order.setMerchantId(merchantId);
+        order.setCustomerId(customerId);
+        order.setCloverOrderId(cloverResponse.getId());
+        order.setTitle(request.title());
+        order.setStatus("OPEN");
+        order.setLinkToken(UUID.randomUUID().toString().replace("-", ""));
+        order.setExpiresAt(Instant.now().plus(24, ChronoUnit.HOURS));
+
+        long subtotal = cloverResponse.subtotal() != null ? cloverResponse.subtotal() : calculateSubtotal(request.items());
+        long tax = cloverResponse.totalTaxAmount() != null ? cloverResponse.totalTaxAmount() : 0L;
+        long total = cloverResponse.total() != null ? cloverResponse.total() : subtotal;
+
+        order.setSubtotalAmount(subtotal);
+        order.setTaxAmount(tax);
+        order.setTotalAmount(total);
+
+        return saveOrderAndItems(order, request.items());
     }
 
     @Transactional(readOnly = true)
@@ -81,7 +100,9 @@ public class OrderService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
 
         List<OrderItemEntity> items = orderItemRepository.findByOrderId(orderId);
-        return OrderDetailResponse.of(order, items);
+        CustomerResponse customer = customerService.getCustomer(merchantId, order.getCustomerId());
+
+        return OrderDetailResponse.of(order, items, customer);
     }
 
     @Transactional(readOnly = true)
@@ -103,6 +124,28 @@ public class OrderService {
                 .toList();
     }
 
+    @Transactional
+    public void deleteDraftOrder(String merchantId, Long id) {
+        OrderEntity order = orderRepository.findByMerchantIdAndId(merchantId, id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+
+        if (!"DRAFT".equals(order.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only draft orders can be deleted");
+        }
+
+        orderRepository.delete(order);
+    }
+
+    private OrderDetailResponse saveOrderAndItems(OrderEntity order, List<OrderRequest.ItemRequest> items) {
+        OrderEntity savedOrder = orderRepository.save(order);
+
+        List<OrderItemEntity> itemEntities = toItemEntities(savedOrder.getId(), items);
+        List<OrderItemEntity> savedItems = orderItemRepository.saveAll(itemEntities);
+
+        CustomerResponse customer = customerService.getCustomer(order.getMerchantId(), order.getCustomerId());
+        return OrderDetailResponse.of(savedOrder, savedItems, customer);
+    }
+
     private String resolveCustomerId(String merchantId, OrderRequest request) {
         if (request.customerId() != null && !request.customerId().isBlank()) {
             return request.customerId();
@@ -114,10 +157,9 @@ public class OrderService {
                     request.customer().lastName(),
                     request.customer().email(),
                     request.customer().phoneNumber()
-                    );
+            );
 
             CustomerResponse createdCustomer = customerService.createCustomer(merchantId, cloverRequest);
-
             return createdCustomer.customerId();
         }
 

@@ -17,6 +17,20 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    @PostMapping
+    public ResponseEntity<OrderDetailResponse> createOrder(
+            HttpSession session,
+            @RequestBody OrderRequest request
+    ) {
+        String merchantId = getMerchantId(session);
+        if (merchantId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        OrderDetailResponse order = orderService.createOrder(merchantId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(order);
+    }
+
     @PostMapping("/draft")
     public ResponseEntity<OrderDetailResponse> saveDraft(
             HttpSession session,
@@ -69,6 +83,20 @@ public class OrderController {
 
         List<OrderSummaryResponse> orders = orderService.getOrders(merchantId);
         return ResponseEntity.ok(orders);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(
+            HttpSession session,
+            @PathVariable Long id
+    ) {
+        String merchantId = getMerchantId(session);
+        if (merchantId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        orderService.deleteDraftOrder(merchantId, id);
+        return ResponseEntity.noContent().build();
     }
 
     private String getMerchantId(HttpSession session) {

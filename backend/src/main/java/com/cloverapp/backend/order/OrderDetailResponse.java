@@ -1,12 +1,14 @@
 package com.cloverapp.backend.order;
 
+import com.cloverapp.backend.customer.CustomerResponse;
+
 import java.time.Instant;
 import java.util.List;
 
 public record OrderDetailResponse(
         Long id,
         String title,
-        String customerId,
+        CustomerResponse customer,
         String status,
         String currency,
         Long subtotalAmount,
@@ -34,7 +36,7 @@ public record OrderDetailResponse(
         }
     }
 
-    public static OrderDetailResponse of(OrderEntity order, List<OrderItemEntity> items) {
+    public static OrderDetailResponse of(OrderEntity order, List<OrderItemEntity> items, CustomerResponse customer) {
         List<OrderItemResponse> itemResponses = items != null
                 ? items.stream().map(OrderItemResponse::fromEntity).toList()
                 : List.of();
@@ -42,7 +44,7 @@ public record OrderDetailResponse(
         return new OrderDetailResponse(
                 order.getId(),
                 order.getTitle(),
-                order.getCustomerId(),
+                customer,
                 order.getStatus(),
                 order.getCurrency(),
                 order.getSubtotalAmount(),

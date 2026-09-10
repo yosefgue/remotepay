@@ -1,30 +1,34 @@
 // app/components/ProtectedRoute.tsx
-import { Navigate, Outlet } from "react-router";
-import { useAuth, AuthProvider } from "../context/authContext";
-import { Spinner } from "~/components/ui/spinner"
+import { redirect, Outlet, useOutletContext } from "react-router";
 
-export default function ProtectedRoute() {
-  return (
-    <AuthProvider>
-      <ProtectedContent />
-    </AuthProvider>
-  );
+export type AuthData = {
+  authenticated: boolean;
+  merchantId: string;
+};
+
+export async function clientLoader() {
+  try {
+    const res = await fetch("/api/auth/me", { credentials: "include" });
+    if (!res.ok) {
+      throw redirect("/");
+    }
+    const data = (await res.json()) as AuthData;
+    if (!data.authenticated) {
+      throw redirect("/");
+    }
+    return data;
+  } catch (err) {
+    if (err instanceof Response) {
+      throw err;
+    }
+    throw redirect("/");
+  }
 }
 
-function ProtectedContent() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
+export default function ProtectedRoute() {
   return <Outlet />;
+}
+
+export function useAuth() {
+  return useOutletContext<AuthData>();
 }

@@ -27,11 +27,6 @@ const data = {
       icon: ReceiptText,
     },
     {
-      title: "Payment Links",
-      url: "/payment-links",
-      icon: CircleDollarSign,
-    },
-    {
       title: "Inventory",
       url: "/inventory",
       icon: Box,
@@ -88,8 +83,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 tooltip="Logout"
-                render={<Link to="/logout" className="font-medium" />}
+                onClick={async () => {
+                  try {
+                    await fetch("/api/auth/logout", { method: "POST", credentials: "include" })
+                  } finally {
+                    window.location.href = "/"
+                  }
+                }}
                 size="md"
+                className="cursor-pointer"
               >
                 <SquareArrowLeft className="size-4" />
                 <span>Logout</span>
