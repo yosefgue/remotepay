@@ -8,6 +8,7 @@ import java.util.List;
 public record OrderDetailResponse(
         Long id,
         String title,
+        String merchantName,
         CustomerResponse customer,
         String status,
         String currency,
@@ -36,7 +37,20 @@ public record OrderDetailResponse(
         }
     }
 
-    public static OrderDetailResponse of(OrderEntity order, List<OrderItemEntity> items, CustomerResponse customer) {
+    public static OrderDetailResponse of(
+            OrderEntity order,
+            List<OrderItemEntity> items,
+            CustomerResponse customer
+    ) {
+        return of(order, items, customer, null);
+    }
+
+    public static OrderDetailResponse of(
+            OrderEntity order,
+            List<OrderItemEntity> items,
+            CustomerResponse customer,
+            String merchantName
+    ) {
         List<OrderItemResponse> itemResponses = items != null
                 ? items.stream().map(OrderItemResponse::fromEntity).toList()
                 : List.of();
@@ -44,6 +58,7 @@ public record OrderDetailResponse(
         return new OrderDetailResponse(
                 order.getId(),
                 order.getTitle(),
+                merchantName,
                 customer,
                 order.getStatus(),
                 order.getCurrency(),

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useRevalidator } from "react-router"
 import {
   Sheet,
   SheetContent,
@@ -17,8 +18,9 @@ import {
   Check,
   Calendar,
   AlertCircle,
-  Loader2,
+  Trash2,
 } from "lucide-react"
+import { Spinner } from "~/components/ui/spinner"
 
 export interface OrderItemDetail {
   id: number
@@ -115,17 +117,22 @@ export function OrderDetailSheet({ orderId, onClose }: OrderDetailSheetProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const revalidator = useRevalidator()
 
   useEffect(() => {
     if (!orderId) {
       setOrder(null)
       setError(null)
+      setActionError(null)
       return
     }
 
     let isMounted = true
     setLoading(true)
     setError(null)
+    setActionError(null)
 
     fetch(`/api/orders/${orderId}`, { credentials: "include" })
       .then(async (res) => {
@@ -163,6 +170,29 @@ export function OrderDetailSheet({ orderId, onClose }: OrderDetailSheetProps) {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const handleDelete = async () => {
+    if (!order?.id || isDeleting) return
+    setIsDeleting(true)
+    setActionError(null)
+
+    try {
+      const res = await fetch(`/api/orders/${order.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      })
+
+      if (!res.ok) {
+        throw new Error("Failed to delete order")
+      }
+
+      revalidator.revalidate()
+      onClose()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to delete order")
+      setIsDeleting(false)
+    }
+  }
+
   const currentStatus = order?.status?.toUpperCase() || "DRAFT"
   const statusMeta = statusConfig[currentStatus] || {
     label: currentStatus,
@@ -185,13 +215,13 @@ export function OrderDetailSheet({ orderId, onClose }: OrderDetailSheetProps) {
       >
         {/* Top Header */}
         <SheetHeader className="p-5 border-b bg-card">
-          <div className="flex items-start justify-between gap-3 pr-6">
-            <div>
+          <div className="flex items-start justify-between gap-4 pr-8">
+            <div className="min-w-0 flex-1">
               <span className="font-mono text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                {order ? `CL-000${order.id}` : "Order Details"}
+                {order ? `CL-000${order.id}` : orderId ? `CL-000${orderId}` : "Order Details"}
               </span>
-              <SheetTitle className="text-xl font-semibold mt-0.5">
-                {order?.title ? order.title : order ? `Order #CL-000${order.id}` : "Loading Order..."}
+              <SheetTitle className="text-xl font-semibold mt-0.5 truncate">
+                {order?.title ? order.title : order ? `Order #CL-000${order.id}` : orderId ? `Order #CL-000${orderId}` : "Order Details"}
               </SheetTitle>
               {order?.createdAt && (
                 <SheetDescription className="flex items-center gap-1.5 mt-1 text-xs">
@@ -203,7 +233,7 @@ export function OrderDetailSheet({ orderId, onClose }: OrderDetailSheetProps) {
 
             {order && (
               <span
-                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusMeta.badgeClass}`}
+                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold shrink-0 mr-2 mt-0.5 ${statusMeta.badgeClass}`}
               >
                 {statusMeta.label}
               </span>
@@ -212,13 +242,12 @@ export function OrderDetailSheet({ orderId, onClose }: OrderDetailSheetProps) {
         </SheetHeader>
 
         {/* Sheet Content Area */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {loading && (
-            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
-              <Loader2 className="size-8 animate-spin text-primary" />
-              <p className="text-sm font-medium">Fetching order details…</p>
-            </div>
-          )}
+        <div
+          className={`flex-1 overflow-y-auto p-5 ${
+            loading ? "flex items-center justify-center" : "space-y-4"
+          }`}
+        >
+          {loading && <Spinner className="size-6 text-muted-foreground" />}
 
           {error && (
             <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive flex items-start gap-3">
@@ -335,18 +364,34 @@ export function OrderDetailSheet({ orderId, onClose }: OrderDetailSheetProps) {
 
         {/* Footer Actions */}
         {!loading && order && (
-          <div className="p-4 border-t bg-card mt-auto">
+          <div className="p-4 border-t bg-card mt-auto space-y-2">
+            {actionError && (
+              <p className="text-xs text-destructive font-medium">{actionError}</p>
+            )}
+
             {currentStatus === "DRAFT" && (
-              <Button type="button" className="w-full gap-2">
-                <LinkIcon className="size-4" />
-                Generate Payment Link
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button type="button" className="w-full gap-2" disabled={isDeleting}>
+                  <LinkIcon className="size-4" />
+                  Generate Payment Link
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="w-full gap-2"
+                >
+                  {isDeleting ? <Spinner className="size-4" /> : <Trash2 className="size-4" />}
+                  Delete Order
+                </Button>
+              </div>
             )}
 
             {currentStatus === "OPEN" && (
               <Button
                 type="button"
-                variant="outline"
+                variant="default"
                 onClick={handleCopyLink}
                 className="w-full gap-2"
               >
@@ -357,7 +402,7 @@ export function OrderDetailSheet({ orderId, onClose }: OrderDetailSheetProps) {
                   </>
                 ) : (
                   <>
-                    <Copy className="size-4" />
+                    <Copy className="size-4"/>
                     Copy Payment Link
                   </>
                 )}

@@ -1,9 +1,5 @@
-import { useState } from "react"
-import { useRevalidator } from "react-router"
 import { createColumnHelper } from "@tanstack/react-table"
 import { type DataTableFeatures } from "~/lib/data-table-features"
-import { Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip"
-import { Copy, Check, Pencil, Trash2, Loader2 } from "lucide-react"
 
 export type Order = {
   id: number
@@ -74,84 +70,4 @@ export const columns = columnHelper.columns([
           })
         : <span className="text-muted-foreground">—</span>,
   }),
-  columnHelper.display({
-    id: "actions",
-    cell: ({ row }) => <OrderRowActions order={row.original} />,
-  }),
 ])
-
-function OrderRowActions({ order }: { order: Order }) {
-  const revalidator = useRevalidator()
-  const [copied, setCopied] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-
-  const handleCopy = async () => {
-    if (!order.linkToken) return
-    const link = `${window.location.origin}/pay/${order.linkToken}`
-    await navigator.clipboard.writeText(link)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
-  }
-
-  const handleDelete = async () => {
-    if (isDeleting) return
-    setIsDeleting(true)
-    try {
-      const res = await fetch(`/api/orders/${order.id}`, {
-        method: "DELETE",
-        credentials: "include",
-      })
-      if (res.ok) {
-        revalidator.revalidate()
-      }
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  return (
-    <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-      {/* Copy */}
-      <Tooltip>
-        <TooltipTrigger
-          type="button"
-          onClick={handleCopy}
-          className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-        >
-          {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}
-        </TooltipTrigger>
-        <TooltipContent side="top">
-          {copied ? "Copied!" : "Copy link"}
-        </TooltipContent>
-      </Tooltip>
-
-      {/* Modify */}
-      <Tooltip>
-        <TooltipTrigger
-          type="button"
-          className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-        >
-          <Pencil className="size-3.5" />
-        </TooltipTrigger>
-        <TooltipContent side="top">Modify</TooltipContent>
-      </Tooltip>
-
-      {/* Delete */}
-      <Tooltip>
-        <TooltipTrigger
-          type="button"
-          disabled={isDeleting}
-          onClick={handleDelete}
-          className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer disabled:opacity-50"
-        >
-          {isDeleting ? (
-            <Loader2 className="size-3.5 animate-spin text-destructive" />
-          ) : (
-            <Trash2 className="size-3.5" />
-          )}
-        </TooltipTrigger>
-        <TooltipContent side="top">Delete</TooltipContent>
-      </Tooltip>
-    </div>
-  )
-}

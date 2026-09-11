@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button"
 import { Label } from "~/components/ui/label"
 import { Separator } from "~/components/ui/separator"
 import { Plus, Minus, Trash2, ArrowLeft, Search, Link as LinkIcon } from "lucide-react"
+import { Spinner } from "~/components/ui/spinner"
 
 /* ------------------------------------------------------------------ */
 /*  Types & Helpers                                                   */
@@ -78,6 +79,7 @@ export default function NewOrder() {
   const [customName, setCustomName] = useState("")
   const [customPrice, setCustomPrice] = useState("")
   const [isSaving, setIsSaving] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const subtotal = lineItems.reduce((acc, i) => acc + i.price * i.quantity, 0)
   const filteredItems = items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()))
@@ -139,20 +141,20 @@ export default function NewOrder() {
     setLineItems((prev) => prev.map((i) => (i.key === key ? { ...i, quantity: qty } : i)))
   }
 
-  const onSubmit = async (data: OrderFormValues) => {
+  const submitOrder = async (endpoint: string, data: OrderFormValues) => {
     if (lineItems.length === 0) return
-    setIsSaving(true)
+    const isDraft = endpoint.includes("draft")
+    if (isDraft) setIsSaving(true)
+    else setIsGenerating(true)
     setSubmitError(null)
+
     try {
       const orderTitle = data.title?.trim() || null
-
       const [firstName, ...rest] = data.customerName.trim().split(" ")
       const lastName = rest.join(" ")
       const hasCustomerInfo = data.customerName.trim() || data.email.trim() || data.phone.trim()
 
-      // If pre-existing customer selected: pass only customerId (customer info is null)
-      // If new customer: pass customerId as null and provide customer info to create in DB
-      const res = await fetch("/api/orders/draft", {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -172,16 +174,18 @@ export default function NewOrder() {
           items: lineItems.map((li) => ({ itemId: li.itemId, name: li.name, price: li.price, quantity: li.quantity })),
         }),
       })
+
       if (res.ok) {
         navigate("/orders")
       } else {
         const err = await res.json().catch(() => null)
-        setSubmitError(err?.message || "Failed to save order. Please try again.")
+        setSubmitError(err?.message || "Failed to process order. Please try again.")
       }
     } catch (e: any) {
-      setSubmitError(e?.message || "An unexpected error occurred while saving the order.")
+      setSubmitError(e?.message || "An unexpected error occurred while processing the order.")
     } finally {
-      setIsSaving(false)
+      if (isDraft) setIsSaving(false)
+      else setIsGenerating(false)
     }
   }
 
@@ -194,7 +198,7 @@ export default function NewOrder() {
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">New Order</h1>
-          <p className="text-sm text-muted-foreground">Create a new draft order.</p>
+          <p className="text-sm text-muted-foreground">Create a new order.</p>
         </div>
       </div>
 
@@ -206,7 +210,7 @@ export default function NewOrder() {
             <CardTitle>Order Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit((data) => submitOrder("/api/orders/draft", data))} className="space-y-6">
               {/* Order Title */}
               <div className="space-y-2">
                 <Label htmlFor="title">
@@ -394,11 +398,27 @@ export default function NewOrder() {
               )}
 
               <div className="flex gap-3">
-                <Button type="submit" variant="outline" disabled={lineItems.length === 0 || isSaving} className="flex-1">
-                  {isSaving ? "Saving…" : "Save as Draft"}
+                <Button
+                  type="submit"
+                  variant="outline"
+                  disabled={lineItems.length === 0 || isSaving || isGenerating}
+                  className="flex-1"
+                >
+                  {isSaving ? <Spinner className="size-4" /> : "Save as Draft"}
                 </Button>
-                <Button type="button" disabled={lineItems.length === 0} className="flex-1">
-                  <LinkIcon className="h-4 w-4" /> Generate Link
+                <Button
+                  type="button"
+                  disabled={lineItems.length === 0 || isSaving || isGenerating}
+                  onClick={handleSubmit((data) => submitOrder("/api/orders", data))}
+                  className="flex-1"
+                >
+                  {isGenerating ? (
+                    <Spinner className="size-4" />
+                  ) : (
+                    <>
+                      <LinkIcon className="h-4 w-4" /> Generate Link
+                    </>
+                  )}
                 </Button>
               </div>
             </form>

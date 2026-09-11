@@ -27,7 +27,7 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        OrderDetailResponse order = orderService.createOrder(merchantId, request);
+        OrderDetailResponse order = orderService.createCloverOrder(merchantId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
 

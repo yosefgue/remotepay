@@ -1,9 +1,10 @@
 import { useState } from "react"
-import { useLoaderData, Link, redirect } from "react-router"
+import { useLoaderData, Link, redirect, useNavigation } from "react-router"
 import { columns, type Order } from "./columns"
 import { DataTable } from "../customers/data-table"
 import { Button } from "~/components/ui/button"
 import { Plus, ReceiptText } from "lucide-react"
+import { Spinner } from "~/components/ui/spinner"
 import { OrderDetailSheet } from "./order-detail-sheet"
 
 export async function clientLoader(): Promise<Order[]> {
@@ -24,6 +25,7 @@ export async function clientLoader(): Promise<Order[]> {
 export default function Orders() {
   const orders = useLoaderData() as Order[]
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null)
+  const isNavigating = useNavigation().location?.pathname === "/orders/new"
 
   return (
     <div className="space-y-6">
@@ -36,9 +38,8 @@ export default function Orders() {
         </div>
 
         <Link to="/orders/new">
-          <Button className="px-6">
-            <Plus className="h-4 w-4" />
-            New Order
+          <Button className="px-6 min-w-[130px]" disabled={isNavigating}>
+            {isNavigating ? <Spinner /> : <><Plus className="h-4 w-4" /> New Order</>}
           </Button>
         </Link>
       </div>

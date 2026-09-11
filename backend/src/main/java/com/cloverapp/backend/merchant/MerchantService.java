@@ -14,6 +14,16 @@ public class MerchantService {
         this.merchantRepository = merchantRepository;
     }
 
+    @Transactional(readOnly = true)
+    public String getMerchantName(String merchantId) {
+        if (merchantId == null || merchantId.isBlank()) {
+            return null;
+        }
+        return merchantRepository.findByMerchantId(merchantId)
+                .map(MerchantEntity::getMerchantName)
+                .orElse(null);
+    }
+
     @Transactional
     public MerchantEntity saveMerchant(String merchantId, String merchantName) {
         MerchantEntity merchant = merchantRepository.findByMerchantId(merchantId)

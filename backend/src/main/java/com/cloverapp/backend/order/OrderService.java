@@ -1,6 +1,7 @@
 package com.cloverapp.backend.order;
 
 import com.cloverapp.backend.customer.*;
+import com.cloverapp.backend.merchant.MerchantService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,17 +20,20 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final CustomerService customerService;
+    private final MerchantService merchantService;
     private final OrderClient orderClient;
 
     public OrderService(
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
             CustomerService customerService,
+            MerchantService merchantService,
             OrderClient orderClient
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.customerService = customerService;
+        this.merchantService = merchantService;
         this.orderClient = orderClient;
     }
 
@@ -68,7 +72,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDetailResponse createOrder(String merchantId, OrderRequest request) {
+    public OrderDetailResponse createCloverOrder(String merchantId, OrderRequest request) {
         String customerId = resolveCustomerId(merchantId, request);
 
         CloverOrderRequest cloverReq = CloverOrderRequest.fromItemRequests(request.items());
@@ -101,8 +105,9 @@ public class OrderService {
 
         List<OrderItemEntity> items = orderItemRepository.findByOrderId(orderId);
         CustomerResponse customer = customerService.getCustomer(merchantId, order.getCustomerId());
+        String merchantName = merchantService.getMerchantName(merchantId);
 
-        return OrderDetailResponse.of(order, items, customer);
+        return OrderDetailResponse.of(order, items, customer, merchantName);
     }
 
     @Transactional(readOnly = true)
